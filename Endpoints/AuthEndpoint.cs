@@ -37,7 +37,7 @@ namespace WebApi.Endpoints
 
             regGroup.MapPost("/SendSmsCode", SendSmsCode).AddEndpointFilter(ValidateModel.ValidateModelFilter<SendSmsCodeRequest>);
             regGroup.MapPost("/VerifySmsCode", VerifySmsCode).AddEndpointFilter(ValidateModel.ValidateModelFilter<VerifySmsCodeRequest>);
-            regGroup.MapPost("/", Reg).AddEndpointFilter(ValidateModel.GetFluentValidateModelFilter<UserRegRequest>(new UserRegRequestValidator()));
+            regGroup.MapPost("/Reg", Reg).AddEndpointFilter(ValidateModel.GetFluentValidateModelFilter<UserRegRequest>(new UserRegRequestValidator()));
         }
 
 
