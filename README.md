@@ -2,7 +2,7 @@
 
 # Asp.Net core minimal api demo
 
-This is a demo project of the back-end of my vue3 front-end app demo. It demonstrates how to use Wechat for login and jwt-token authentication. The persistent data storage is SqlServer, with SqlSugar as the ORM lib. Http responses and other non-persistent data are stored using Redis.
+This is a demo project of the back-end of my vue3 front-end app demo. The functionality of this demo is identical to the mvc webapi style demo (another repository in my account). It demonstrates how to use Wechat for login and jwt-token authentication. The persistent data storage is SqlServer, with SqlSugar as the ORM lib. Http responses and other non-persistent data are stored using Redis.
 
 ## Configuration
 

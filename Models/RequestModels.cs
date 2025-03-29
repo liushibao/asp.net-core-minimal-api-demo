@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Numerics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebApi.Models
 {
@@ -28,4 +26,44 @@ namespace WebApi.Models
         public string? IdCardNumber { get; set; }
         public string? Birthday { get; set; }
     }
+
+    public class GdpDataRequest
+    {
+        [Required]
+        public int? YearStart { get; set; }
+        [Required]
+        public int? YearEnd { get; set; }
+    }
+
+    public class PagedRequest
+    {
+        [Required]
+        public int? PageNumber { get; set; }
+        [Required]
+        public int? PageSize { get; set; }
+    }
+
+    public class InfoRequest : PagedRequest
+    {
+
+    }
+
+    public class LoginRequest
+    {
+        [Required]
+        public string? redirect_uri { get; set; }
+    }
+
+    public class FakeWeixinLoginRequest
+    {
+        [Required]
+        public string? redirect_uri { get; set; }
+    }
+
+    public class GetTokenRequest
+    {
+        [Required]
+        public string? code { get; set; }
+    }
+
 }

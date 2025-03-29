@@ -83,7 +83,8 @@ app.UseExceptionHandler(exceptionHandlerApp =>
     });
 });
 
-app.UseHttpsRedirection();
+if (EnvironmentConfig.Instance.SslCertPath != null)
+    app.UseHttpsRedirection();
 
 app.UseCors("CorsPolicy");
 app.UseAuthentication();

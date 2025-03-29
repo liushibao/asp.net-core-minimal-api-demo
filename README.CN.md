@@ -2,7 +2,7 @@
 
 # Asp.Net core minimal api demo
 
-这是我的Vue3前端Demo项目的配套后端。展示了微信登录和使用jwt-token身份验证。持久数据存储采用SqlServer，用SqlSugar做ORM。Http返回数据和其他临时数据使用Redis缓存。Asp.Net core minimal api很适合在微服务场景使用，风格与nodejs express或者nancy framework类似。
+这是我的Vue3前端Demo项目的配套后端。本项目的功能与我账号下的另一个mvc webapi风格demo一致。展示了微信登录和使用jwt-token身份验证。持久数据存储采用SqlServer，用SqlSugar做ORM。Http返回数据和其他临时数据使用Redis缓存。Asp.Net core minimal api很适合在微服务场景使用，风格与nodejs express或者nancy framework类似。
 
 ## 服务器配置
 

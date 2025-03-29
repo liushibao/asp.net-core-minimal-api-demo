@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Web;
 using SqlSugar;
 using WebApi.Services;
@@ -10,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json;
 
 namespace WebApi.Endpoints
 {
@@ -31,9 +31,9 @@ namespace WebApi.Endpoints
             var loginGroup = app.MapGroup("/api/auth/login");
             var regGroup = app.MapGroup("/api/auth/reg").RequireAuthorization();
 
-            loginGroup.MapGet("/", Login);
-            loginGroup.MapGet("/FakeWeixinLogin", FakeWeixinLogin);
-            loginGroup.MapGet("/Token", GetToken);
+            loginGroup.MapGet("/", Login).AddEndpointFilter(ValidateModel.ValidateModelFilter<LoginRequest>);
+            loginGroup.MapGet("/FakeWeixinLogin", FakeWeixinLogin).AddEndpointFilter(ValidateModel.ValidateModelFilter<FakeWeixinLoginRequest>);
+            loginGroup.MapGet("/Token", GetToken).AddEndpointFilter(ValidateModel.ValidateModelFilter<GetTokenRequest>);
 
             regGroup.MapPost("/SendSmsCode", SendSmsCode).AddEndpointFilter(ValidateModel.ValidateModelFilter<SendSmsCodeRequest>);
             regGroup.MapPost("/VerifySmsCode", VerifySmsCode).AddEndpointFilter(ValidateModel.ValidateModelFilter<VerifySmsCodeRequest>);
@@ -67,11 +67,12 @@ namespace WebApi.Endpoints
         /// <param name="redirect_uri">用户打开前端App需要身份认证的页面时的相对路径</param>
         /// <param name="context"></param>
         /// <returns></returns>
-        private IResult Login([FromQuery] string redirect_uri, HttpContext context)
+        private IResult Login([AsParameters] LoginRequest req, HttpContext context)
         {
+            string redirect_uri = req.redirect_uri;
             // 根据微信开发文档 https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html#0
             var url = EnvironmentConfig.Instance.WxAppId == null
-               ? $"http://{context.Request.Host}/api/auth/login/FakeWeixinLogin?redirect_uri={HttpUtility.UrlEncode(redirect_uri)}&response_type=code&scope=snsapi_base#wechat_redirect"
+               ? $"{(context.Request.IsHttps ? "https" : "http")}://{context.Request.Host}/api/auth/login/FakeWeixinLogin?redirect_uri={HttpUtility.UrlEncode(redirect_uri)}&response_type=code&scope=snsapi_base#wechat_redirect"
                : $"https://open.weixin.qq.com/connect/oauth2/authorize?appid={EnvironmentConfig.Instance.WxAppId}&redirect_uri={HttpUtility.UrlEncode(redirect_uri)}&response_type=code&scope=snsapi_base#wechat_redirect";
             Console.WriteLine(url);
             return Results.Redirect(url);
@@ -83,8 +84,9 @@ namespace WebApi.Endpoints
         /// <param name="redirect_uri"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        private IResult FakeWeixinLogin([FromQuery] string redirect_uri)
+        private IResult FakeWeixinLogin([AsParameters] FakeWeixinLoginRequest req)
         {
+            string redirect_uri = req.redirect_uri;
             return Results.Redirect($"{redirect_uri}?code=1111");
         }
 
@@ -93,8 +95,9 @@ namespace WebApi.Endpoints
         /// </summary>
         /// <param name="code">微信授权页面返回给redirect_uri的code，用于获取微信openid</param>
         /// <returns></returns>
-        private async Task<IResult> GetToken([FromQuery] string code)
+        private async Task<IResult> GetToken([AsParameters] GetTokenRequest req)
         {
+            string code = req.code;
             string wxOpenId;
             if (EnvironmentConfig.Instance.WxAppId != null)
             {
@@ -104,9 +107,9 @@ namespace WebApi.Endpoints
                 response.EnsureSuccessStatusCode();
                 var wxToken = await response.Content.ReadFromJsonAsync<dynamic>();
                 if (wxToken == null)
-                    return Results.Problem("微信ID返回空值");
+                    return Results.Problem(new ProblemDetails() { Title = "微信ID返回空值" });
                 else if ((string)wxToken.errcode != null)
-                    return Results.Problem("微信ID返回错误");
+                    return Results.Problem(new ProblemDetails() { Title = "微信ID返回错误" });
                 else
                 {
                     wxOpenId = wxToken.openid;
@@ -140,7 +143,7 @@ namespace WebApi.Endpoints
             string userId = claims.FindFirstValue("id");
             var count = await _db.Queryable<User>().CountAsync(t => t.Mob == req.Mob && t.Id != int.Parse(userId));
             if (count > 0)
-                return Results.Problem("手机号已绑定其他用户。");
+                return Results.BadRequest(new ProblemDetails() { Title = "手机号已绑定其他用户。" });
             var smsCode = new Random().Next(1000000, 9999999).ToString().Substring(0, 6);
             var result = await this._smsClient.SendSmsCode(req.Mob, [smsCode]);
             if (result == true)
@@ -151,7 +154,7 @@ namespace WebApi.Endpoints
             }
             else
             {
-                return Results.Problem("短信服务异常");
+                return Results.Problem(new ProblemDetails() { Title = "短信服务异常" });
             }
         }
         private async Task<IResult> VerifySmsCode(VerifySmsCodeRequest req, ClaimsPrincipal claims)
