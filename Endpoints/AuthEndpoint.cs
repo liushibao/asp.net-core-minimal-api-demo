@@ -103,7 +103,7 @@ namespace WebApi.Endpoints
             {
                 // 根据微信开发文档 https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html#1
                 HttpClient client = new HttpClient();
-                HttpResponseMessage response = await client.GetAsync($"https://api.weixin.qq.com/sns/oauth2/access_token?appid=${EnvironmentConfig.Instance.WxAppId}&secret=${EnvironmentConfig.Instance.WxAppSecret}&code=${code}&grant_type=authorization_code");
+                HttpResponseMessage response = await client.GetAsync($"https://api.weixin.qq.com/sns/oauth2/access_token?appid={EnvironmentConfig.Instance.WxAppId}&secret={EnvironmentConfig.Instance.WxAppSecret}&code={code}&grant_type=authorization_code");
                 response.EnsureSuccessStatusCode();
                 var wxToken = await response.Content.ReadFromJsonAsync<dynamic>();
                 if (wxToken == null)
